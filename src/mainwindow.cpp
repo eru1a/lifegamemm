@@ -2,7 +2,7 @@
 #include <glibmm/main.h>
 
 MainWindow::MainWindow()
-    : board()
+    : board(100, 100)
     , board_area(&board) {
     set_title("Life Game");
     set_default_size(800, 600);

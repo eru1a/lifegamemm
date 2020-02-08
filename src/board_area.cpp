@@ -7,14 +7,28 @@ BoardArea::BoardArea(Board *board)
     add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
 }
 
-bool BoardArea::on_button_press_event(GdkEventButton *event) {
-    int x = event->x / cs;
-    int y = event->y / cs;
+std::pair<int, int> BoardArea::get_pos(double x, double y) const {
+    return {(x - offset_x) / cs, (y - offset_y) / cs};
+}
 
-    if (event->button == 1) {
-        board->set(x, y, true);
-    } else if (event->button == 3) {
-        board->set(x, y, false);
+bool BoardArea::on_button_press_event(GdkEventButton *event) {
+    if (event->button == 2) {
+        // 中クリックの場合
+        offset_prev_x = offset_x;
+        offset_prev_y = offset_y;
+        event_press_x = event->x;
+        event_press_y = event->y;
+    } else {
+        auto [x, y] = get_pos(event->x, event->y);
+
+        if (!(0 <= x && x < board->get_col() && 0 <= y && y < board->get_row()))
+            return true;
+
+        if (event->button == 1) {
+            board->set(x, y, true);
+        } else if (event->button == 3) {
+            board->set(x, y, false);
+        }
     }
 
     queue_draw();
@@ -22,13 +36,21 @@ bool BoardArea::on_button_press_event(GdkEventButton *event) {
 }
 
 bool BoardArea::on_motion_notify_event(GdkEventMotion *event) {
-    int x = event->x / cs;
-    int y = event->y / cs;
+    if (event->state & GDK_BUTTON2_MASK) {
+        // 中クリックの場合
+        offset_x = offset_prev_x - (event_press_x - event->x);
+        offset_y = offset_prev_y - (event_press_y - event->y);
+    } else {
+        auto [x, y] = get_pos(event->x, event->y);
 
-    if (event->state & GDK_BUTTON1_MASK) {
-        board->set(x, y, true);
-    } else if (event->state & GDK_BUTTON3_MASK) {
-        board->set(x, y, false);
+        if (!(0 <= x && x < board->get_col() && 0 <= y && y < board->get_row()))
+            return true;
+
+        if (event->state & GDK_BUTTON1_MASK) {
+            board->set(x, y, true);
+        } else if (event->state & GDK_BUTTON3_MASK) {
+            board->set(x, y, false);
+        }
     }
 
     queue_draw();
@@ -37,6 +59,18 @@ bool BoardArea::on_motion_notify_event(GdkEventMotion *event) {
 
 bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     cr->set_line_width(1);
+
+    Cairo::Matrix matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+    // 移動
+    matrix.translate(offset_x, offset_y);
+
+    cr->transform(matrix);
+
+    // 背景を黒にする
+    cr->set_source_rgb(0, 0, 0);
+    cr->rectangle(0, 0, board->get_col() * cs, board->get_row() * cs);
+    cr->fill();
+
     for (int y = 0; y < board->get_row(); y++) {
         for (int x = 0; x < board->get_col(); x++) {
             if (board->get(x, y)) {

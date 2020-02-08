@@ -15,6 +15,15 @@ private:
 
 private:
     Board *board;
+
     /// セルサイズ
     double cs = 20;
+
+    // これらpairにすべき?
+    double offset_x = 0, offset_y = 0;
+    double offset_prev_x = 0, offset_prev_y = 0;
+    double event_press_x = 0, event_press_y = 0;
+
+    /// 与えられた座標からボード上のマスの座標を返す
+    std::pair<int, int> get_pos(double x, double y) const;
 };
