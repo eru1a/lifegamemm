@@ -5,10 +5,16 @@ BoardArea::BoardArea(Board *board)
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
     add_events(Gdk::BUTTON_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK);
     add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::SCROLL_MASK | Gdk::SMOOTH_SCROLL_MASK);
+}
+
+std::pair<int, int> BoardArea::get_xy(double x, double y) const {
+    return {(x - offset_x) / scale, (y - offset_y) / scale};
 }
 
 std::pair<int, int> BoardArea::get_pos(double x, double y) const {
-    return {(x - offset_x) / cs, (y - offset_y) / cs};
+    auto [x1, y1] = get_xy(x, y);
+    return {x1 / cs, y1 / cs};
 }
 
 bool BoardArea::on_button_press_event(GdkEventButton *event) {
@@ -57,12 +63,25 @@ bool BoardArea::on_motion_notify_event(GdkEventMotion *event) {
     return true;
 }
 
+bool BoardArea::on_scroll_event(GdkEventScroll *event) {
+    auto [x0, y0] = get_xy(event->x, event->y);
+    scale *= (event->delta_y > 0) ? 0.8 : 1.2;
+    auto [x1, y1] = get_xy(event->x, event->y);
+    offset_x -= (x0 - x1) * scale;
+    offset_y -= (y0 - y1) * scale;
+
+    queue_draw();
+    return true;
+}
+
 bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     cr->set_line_width(1);
 
     Cairo::Matrix matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+    // 倍率
+    matrix.scale(scale, scale);
     // 移動
-    matrix.translate(offset_x, offset_y);
+    matrix.translate(offset_x / scale, offset_y / scale);
 
     cr->transform(matrix);
 
