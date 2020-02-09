@@ -7,7 +7,11 @@ MainWindow::MainWindow()
     , vbox(Gtk::ORIENTATION_VERTICAL)
     , hbox(Gtk::ORIENTATION_HORIZONTAL)
     , button_start_or_stop("start")
-    , button_step("step") {
+    , button_step("step")
+    , adjustment_interval(Gtk::Adjustment::create(interval, 10, 300, 10, 100))
+    , label_interval("interval (ms): ")
+    , scale_interval(adjustment_interval, Gtk::ORIENTATION_HORIZONTAL)
+    , hbox_interval(Gtk::ORIENTATION_HORIZONTAL) {
     set_title("Life Game");
     set_default_size(800, 600);
 
@@ -17,8 +21,19 @@ MainWindow::MainWindow()
         board_area.queue_draw();
     });
 
+    scale_interval.set_digits(0);
+    scale_interval.set_value_pos(Gtk::POS_LEFT);
+    scale_interval.signal_value_changed().connect([this] {
+        // 10刻みにする
+        interval = int(scale_interval.get_value()) / 10 * 10;
+        scale_interval.set_value(interval);
+    });
+    hbox_interval.pack_start(label_interval, false, false);
+    hbox_interval.pack_start(scale_interval);
+
     hbox.pack_start(button_start_or_stop);
     hbox.pack_start(button_step);
+    hbox.pack_start(hbox_interval);
     vbox.pack_start(hbox, false, false);
     vbox.pack_start(board_area);
     add(vbox);
@@ -44,10 +59,12 @@ void MainWindow::run_toggle() {
     if (!is_running) {
         is_running = true;
         button_start_or_stop.set_label("stop");
+        scale_interval.set_sensitive(false);
         run();
     } else {
-        button_start_or_stop.set_label("start");
         is_running = false;
+        button_start_or_stop.set_label("start");
+        scale_interval.set_sensitive(true);
     }
 }
 
