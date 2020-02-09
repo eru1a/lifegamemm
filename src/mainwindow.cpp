@@ -25,16 +25,17 @@ MainWindow::MainWindow()
 }
 
 bool MainWindow::on_key_press_event(GdkEventKey *event) {
-    switch (event->keyval) {
-    case GDK_KEY_s:
+    unsigned int modifier = event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK);
+    if (!modifier && event->keyval == GDK_KEY_s) {
+        // sキーでrun_toggle
         run_toggle();
-        break;
-    case GDK_KEY_n:
+    } else if (!modifier && event->keyval == GDK_KEY_n) {
+        // nキーでstep
         board.step();
         board_area.queue_draw();
-        break;
-    default:
-        break;
+    } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_q) {
+        // ctrl+qで終了
+        hide();
     }
     return true;
 }
