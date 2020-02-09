@@ -1,6 +1,8 @@
 #pragma once
 
 #include "board_area.h"
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
 #include <gtkmm/window.h>
 
 class MainWindow : public Gtk::Window {
@@ -15,6 +17,12 @@ private:
     Board board;
     BoardArea board_area;
     bool is_running = false;
-    void run();
     double interval = 100;
+
+    Gtk::Box vbox, hbox;
+    Gtk::Button button_start_or_stop;
+    Gtk::Button button_step;
+
+    void run_toggle();
+    void run();
 };
