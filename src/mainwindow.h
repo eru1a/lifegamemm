@@ -24,6 +24,7 @@ private:
     Gtk::Box vbox, hbox;
     Gtk::Button button_start_or_stop;
     Gtk::Button button_step;
+    Gtk::Button button_clear;
 
     int interval = 100;
     Glib::RefPtr<Gtk::Adjustment> adjustment_interval;
@@ -31,6 +32,8 @@ private:
     Gtk::Scale scale_interval;
     Gtk::Box hbox_interval;
 
-    void run_toggle();
+    void start();
+    void stop();
+    void toggle();
     void run();
 };

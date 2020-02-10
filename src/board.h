@@ -13,6 +13,7 @@ public:
     int get_row() const { return row; }
 
     void step();
+    void clear();
 
 private:
     int col;

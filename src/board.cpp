@@ -44,3 +44,5 @@ void Board::step() {
     }
     board = next;
 }
+
+void Board::clear() { board = std::vector<std::vector<bool>>(row, std::vector<bool>(col, false)); }
