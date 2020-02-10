@@ -8,6 +8,8 @@ public:
     BoardArea(Board *board);
     virtual ~BoardArea() {}
 
+    void set_pattern(const std::vector<std::vector<bool>> &p) { pattern = p; }
+
 private:
     bool on_button_press_event(GdkEventButton *event) override;
     bool on_motion_notify_event(GdkEventMotion *event) override;
@@ -26,6 +28,14 @@ private:
     double offset_x = 0, offset_y = 0;
     double offset_prev_x = 0, offset_prev_y = 0;
     double event_press_x = 0, event_press_y = 0;
+    double mouse_pos_x = 0, mouse_pos_y = 0;
+
+    std::vector<std::vector<bool>> pattern = {{1}};
+
+    /// マウスの座標にパターンを置く
+    void put();
+    /// マウスの座標のセルを消す
+    void remove();
 
     /// 与えられた座標からオフセットと倍率を考慮した座標を返す
     std::pair<int, int> get_xy(double x, double y) const;
