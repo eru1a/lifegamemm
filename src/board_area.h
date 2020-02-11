@@ -23,12 +23,14 @@ private:
     /// 倍率
     double scale = 1.0;
 
-    // これらpairにすべき?
-    // TODO: offset_x, offset_yの初期値を真ん中にする
-    double offset_x = 0, offset_y = 0;
-    double offset_prev_x = 0, offset_prev_y = 0;
-    double event_press_x = 0, event_press_y = 0;
-    double mouse_pos_x = 0, mouse_pos_y = 0;
+    struct P {
+        double x, y;
+    };
+
+    P offset;
+    P offset_prev = {0, 0};
+    P event_press = {0, 0};
+    P mouse_pos = {0, 0};
 
     std::vector<std::vector<bool>> pattern = {{1}};
 

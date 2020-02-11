@@ -9,7 +9,7 @@ BoardArea::BoardArea(Board *board)
 }
 
 std::pair<int, int> BoardArea::get_xy(double x, double y) const {
-    return {(x - offset_x) / scale, (y - offset_y) / scale};
+    return {(x - offset.x) / scale, (y - offset.y) / scale};
 }
 
 std::pair<int, int> BoardArea::get_pos(double x, double y) const {
@@ -18,7 +18,7 @@ std::pair<int, int> BoardArea::get_pos(double x, double y) const {
 }
 
 void BoardArea::put() {
-    auto [pos_x, pos_y] = get_pos(mouse_pos_x, mouse_pos_y);
+    auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     for (size_t i = 0; i < pattern.size(); i++) {
         for (size_t j = 0; j < pattern[0].size(); j++) {
             if (!pattern[i][j])
@@ -33,21 +33,18 @@ void BoardArea::put() {
 }
 
 void BoardArea::remove() {
-    auto [pos_x, pos_y] = get_pos(mouse_pos_x, mouse_pos_y);
+    auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     if (board->check_bound(pos_x, pos_y))
         board->set(pos_x, pos_y, false);
 }
 
 bool BoardArea::on_button_press_event(GdkEventButton *event) {
-    mouse_pos_x = event->x;
-    mouse_pos_y = event->y;
+    mouse_pos = {event->x, event->y};
 
     if (event->button == 2) {
         // 中クリックの場合offset_prevとevent_pressを更新
-        offset_prev_x = offset_x;
-        offset_prev_y = offset_y;
-        event_press_x = event->x;
-        event_press_y = event->y;
+        offset_prev = offset;
+        event_press = {event->x, event->y};
     } else if (event->button == 1) {
         // 左クリックの場合セットされているパターンを置く
         put();
@@ -61,13 +58,12 @@ bool BoardArea::on_button_press_event(GdkEventButton *event) {
 }
 
 bool BoardArea::on_motion_notify_event(GdkEventMotion *event) {
-    mouse_pos_x = event->x;
-    mouse_pos_y = event->y;
+    mouse_pos = {event->x, event->y};
 
     if (event->state & GDK_BUTTON2_MASK) {
         // 中クリックの場合offsetを更新
-        offset_x = offset_prev_x - (event_press_x - event->x);
-        offset_y = offset_prev_y - (event_press_y - event->y);
+        offset.x = offset_prev.x - (event_press.x - event->x);
+        offset.y = offset_prev.y - (event_press.y - event->y);
     } else if (event->state & GDK_BUTTON1_MASK) {
         // 左クリックの場合セットされているパターンを置く
         put();
@@ -81,14 +77,13 @@ bool BoardArea::on_motion_notify_event(GdkEventMotion *event) {
 }
 
 bool BoardArea::on_scroll_event(GdkEventScroll *event) {
-    mouse_pos_x = event->x;
-    mouse_pos_y = event->y;
+    mouse_pos = {event->x, event->y};
 
     auto [x0, y0] = get_xy(event->x, event->y);
     scale *= (event->delta_y > 0) ? 0.8 : 1.2;
     auto [x1, y1] = get_xy(event->x, event->y);
-    offset_x -= (x0 - x1) * scale;
-    offset_y -= (y0 - y1) * scale;
+    offset.x -= (x0 - x1) * scale;
+    offset.y -= (y0 - y1) * scale;
 
     queue_draw();
     return true;
@@ -101,7 +96,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     // 倍率
     matrix.scale(scale, scale);
     // 移動
-    matrix.translate(offset_x / scale, offset_y / scale);
+    matrix.translate(offset.x / scale, offset.y / scale);
 
     cr->transform(matrix);
 
@@ -123,7 +118,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
         }
     }
 
-    auto [pos_x, pos_y] = get_pos(mouse_pos_x, mouse_pos_y);
+    auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     cr->set_source_rgba(0, 0, 1, 0.7);
     for (size_t y = 0; y < pattern.size(); y++) {
         for (size_t x = 0; x < pattern[0].size(); x++) {
