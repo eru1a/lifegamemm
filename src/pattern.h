@@ -10,7 +10,7 @@ public:
     std::vector<std::vector<bool>> pattern;
 
     Pattern()
-        : name("cell")
+        : name("Cell")
         , pattern({{1}}) {}
 
     /// .celssファイル読み込み

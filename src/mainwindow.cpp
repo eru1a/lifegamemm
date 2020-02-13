@@ -1,5 +1,8 @@
 #include "mainwindow.h"
+#include <filesystem>
+#include <fstream>
 #include <glibmm/main.h>
+#include <iostream>
 
 MainWindow::MainWindow()
     : board(100, 100)
@@ -41,27 +44,37 @@ MainWindow::MainWindow()
     // パターンリスト
     patternwindow.add(treeview);
     patternwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    patternwindow.set_size_request(250, 600);
 
     treemodel = Gtk::ListStore::create(columns);
     treeview.set_model(treemodel);
 
-    Gtk::TreeModel::Row row = *(treemodel->append());
-    auto pattern1 = Pattern::load_cells("patterns/cell.cells");
-    row[columns.name] = pattern1.name;
-    row[columns.pattern] = pattern1;
+    // パターンのファイル名
+    // 事前にソートしておく
+    std::vector<std::string> pattern_files;
+    for (const auto &entry : std::filesystem::directory_iterator("./patterns"))
+        pattern_files.push_back(entry.path());
+    sort(pattern_files.begin(), pattern_files.end());
 
-    row = *(treemodel->append());
-    auto pattern2 = Pattern::load_cells("patterns/rpentomino.cells");
-    row[columns.name] = pattern2.name;
-    row[columns.pattern] = pattern2;
+    for (const auto &file : pattern_files) {
+        Gtk::TreeModel::Row row = *(treemodel->append());
+        auto pattern = Pattern::load_cells(file);
+        row[columns.name] = pattern.name;
+        row[columns.pattern] = pattern;
+    }
 
     treeview.append_column("Name", columns.name);
+    auto column = treeview.get_column(0);
+    if (column) {
+        column->set_sort_column(columns.name);
+    }
 
     treeview.get_selection()->signal_changed().connect([this] {
         auto iter = treeview.get_selection()->get_selected();
         Gtk::TreeModel::Row row = *iter;
         board_area.set_pattern(row[columns.pattern]);
     });
+    set_pattern_cell();
 
     hbox_buttons.pack_start(button_start_or_stop);
     hbox_buttons.pack_start(button_step);
@@ -69,7 +82,7 @@ MainWindow::MainWindow()
     hbox_buttons.pack_start(hbox_interval);
 
     hbox.pack_start(board_area);
-    hbox.pack_start(patternwindow);
+    hbox.pack_start(patternwindow, false, false, 5);
     vbox.pack_start(hbox_buttons, false, false);
     vbox.pack_start(hbox);
 
@@ -88,6 +101,9 @@ bool MainWindow::on_key_press_event(GdkEventKey *event) {
     } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_q) {
         // ctrl+qで終了
         hide();
+    } else if (!modifier && event->keyval == GDK_KEY_Escape) {
+        // Escで手持ちのパターンをセルに戻す
+        set_pattern_cell();
     }
     return true;
 }
@@ -127,4 +143,15 @@ void MainWindow::run() {
             return true;
         },
         interval);
+}
+
+void MainWindow::set_pattern_cell() {
+    for (const auto &iter : treemodel->children()) {
+        Gtk::TreeModel::Row row = *iter;
+        if (row[columns.name] == "Cell") {
+            auto path = treemodel->get_path(iter);
+            treeview.set_cursor(path);
+            return;
+        }
+    }
 }

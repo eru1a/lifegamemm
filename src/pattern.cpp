@@ -2,7 +2,6 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 bool starts_with(const std::string &s, const std::string &prefix) {
     size_t size = prefix.size();
@@ -21,6 +20,8 @@ Pattern Pattern::load_cells(const std::string &file) {
     std::ifstream ifs(file);
     assert(ifs);
     assert(ends_with(file, ".cells"));
+    // std::getlineは改行文字まで読み込むがignore()を呼べば捨てることが出来る
+    ifs.ignore();
 
     std::filesystem::path path = file;
     // !Nnameが含まれていなければファイル名をnameとする
@@ -41,7 +42,7 @@ Pattern Pattern::load_cells(const std::string &file) {
             for (auto c : line) {
                 if (c == '.') {
                     row.push_back(false);
-                } else {
+                } else if (c == 'O') {
                     row.push_back(true);
                 }
             }

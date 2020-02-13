@@ -42,7 +42,7 @@ private:
             add(name);
             add(pattern);
         }
-        Gtk::TreeModelColumn<std::string> name;
+        Gtk::TreeModelColumn<Glib::ustring> name;
         Gtk::TreeModelColumn<Pattern> pattern;
     };
 
@@ -55,4 +55,6 @@ private:
     void stop();
     void toggle();
     void run();
+
+    void set_pattern_cell();
 };
