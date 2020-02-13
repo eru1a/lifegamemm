@@ -9,6 +9,9 @@ add_executable( ${PROJECT_NAME}
   mainwindow.cpp
   board.cpp
   board_area.cpp
+  pattern.cpp
   )
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/patterns" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(${PROJECT_NAME} ${GTKMM_LIBRARIES})

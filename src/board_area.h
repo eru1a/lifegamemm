@@ -1,6 +1,7 @@
 #pragma once
 
 #include "board.h"
+#include "pattern.h"
 #include <gtkmm/drawingarea.h>
 
 class BoardArea : public Gtk::DrawingArea {
@@ -8,7 +9,7 @@ public:
     BoardArea(Board *board);
     virtual ~BoardArea() {}
 
-    void set_pattern(const std::vector<std::vector<bool>> &p) { pattern = p; }
+    void set_pattern(const Pattern &p) { pattern = p; }
 
 private:
     bool on_button_press_event(GdkEventButton *event) override;
@@ -32,7 +33,7 @@ private:
     P event_press = {0, 0};
     P mouse_pos = {0, 0};
 
-    std::vector<std::vector<bool>> pattern = {{1}};
+    Pattern pattern;
 
     /// マウスの座標にパターンを置く
     void put();

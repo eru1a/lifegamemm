@@ -19,12 +19,12 @@ std::pair<int, int> BoardArea::get_pos(double x, double y) const {
 
 void BoardArea::put() {
     auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
-    for (size_t i = 0; i < pattern.size(); i++) {
-        for (size_t j = 0; j < pattern[0].size(); j++) {
-            if (!pattern[i][j])
+    for (size_t i = 0; i < pattern.pattern.size(); i++) {
+        for (size_t j = 0; j < pattern.pattern[i].size(); j++) {
+            if (!pattern.pattern[i][j])
                 continue;
-            int x = pos_x + i;
-            int y = pos_y + j;
+            int x = pos_x + j;
+            int y = pos_y + i;
             if (!board->check_bound(x, y))
                 continue;
             board->set(x, y, true);
@@ -120,13 +120,15 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
 
     auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     cr->set_source_rgba(0, 0, 1, 0.7);
-    for (size_t y = 0; y < pattern.size(); y++) {
-        for (size_t x = 0; x < pattern[0].size(); x++) {
-            if (!pattern[y][x])
+    for (size_t i = 0; i < pattern.pattern.size(); i++) {
+        for (size_t j = 0; j < pattern.pattern[i].size(); j++) {
+            if (!pattern.pattern[i][j])
                 continue;
-            if (!board->check_bound(pos_x + x, pos_y + y))
+            int x = pos_x + j;
+            int y = pos_y + i;
+            if (!board->check_bound(x, y))
                 continue;
-            cr->rectangle((pos_x + x) * cs, (pos_y + y) * cs, cs, cs);
+            cr->rectangle(x * cs, y * cs, cs, cs);
         }
     }
     cr->fill();

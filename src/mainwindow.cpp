@@ -6,6 +6,7 @@ MainWindow::MainWindow()
     , board_area(&board)
     , vbox(Gtk::ORIENTATION_VERTICAL)
     , hbox(Gtk::ORIENTATION_HORIZONTAL)
+    , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
     , button_start_or_stop("start")
     , button_step("step")
     , button_clear("clear")
@@ -37,12 +38,41 @@ MainWindow::MainWindow()
     hbox_interval.pack_start(label_interval, false, false);
     hbox_interval.pack_start(scale_interval);
 
-    hbox.pack_start(button_start_or_stop);
-    hbox.pack_start(button_step);
-    hbox.pack_start(button_clear);
-    hbox.pack_start(hbox_interval);
-    vbox.pack_start(hbox, false, false);
-    vbox.pack_start(board_area);
+    // パターンリスト
+    patternwindow.add(treeview);
+    patternwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
+    treemodel = Gtk::ListStore::create(columns);
+    treeview.set_model(treemodel);
+
+    Gtk::TreeModel::Row row = *(treemodel->append());
+    auto pattern1 = Pattern::load_cells("patterns/cell.cells");
+    row[columns.name] = pattern1.name;
+    row[columns.pattern] = pattern1;
+
+    row = *(treemodel->append());
+    auto pattern2 = Pattern::load_cells("patterns/rpentomino.cells");
+    row[columns.name] = pattern2.name;
+    row[columns.pattern] = pattern2;
+
+    treeview.append_column("Name", columns.name);
+
+    treeview.get_selection()->signal_changed().connect([this] {
+        auto iter = treeview.get_selection()->get_selected();
+        Gtk::TreeModel::Row row = *iter;
+        board_area.set_pattern(row[columns.pattern]);
+    });
+
+    hbox_buttons.pack_start(button_start_or_stop);
+    hbox_buttons.pack_start(button_step);
+    hbox_buttons.pack_start(button_clear);
+    hbox_buttons.pack_start(hbox_interval);
+
+    hbox.pack_start(board_area);
+    hbox.pack_start(patternwindow);
+    vbox.pack_start(hbox_buttons, false, false);
+    vbox.pack_start(hbox);
+
     add(vbox);
 }
 
