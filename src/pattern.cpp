@@ -1,4 +1,5 @@
 #include "pattern.h"
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -16,12 +17,25 @@ bool ends_with(const std::string &s, const std::string &suffix) {
     return std::equal(suffix.rbegin(), suffix.rend(), s.rbegin());
 }
 
+void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+}
+
+void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+            s.end());
+}
+
+void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+#include <iostream>
 Pattern Pattern::load_cells(const std::string &file) {
     std::ifstream ifs(file);
     assert(ifs);
     assert(ends_with(file, ".cells"));
-    // std::getlineは改行文字まで読み込むがignore()を呼べば捨てることが出来る
-    ifs.ignore();
 
     std::filesystem::path path = file;
     // !Nnameが含まれていなければファイル名をnameとする
@@ -31,6 +45,7 @@ Pattern Pattern::load_cells(const std::string &file) {
 
     std::string line;
     while (std::getline(ifs, line)) {
+        trim(line);
         if (starts_with(line, "!Name: ")) {
             name = line.substr(7);
         } else if (starts_with(line, "!")) {

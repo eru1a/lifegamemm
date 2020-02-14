@@ -6,6 +6,7 @@
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/paned.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/treemodel.h>
@@ -25,17 +26,23 @@ private:
     BoardArea board_area;
     bool is_running = false;
 
-    Gtk::Box vbox, hbox, hbox_buttons;
+    Gtk::Box vbox;
+    Gtk::Paned paned;
+
+    // ボタン関連
     Gtk::Button button_start_or_stop;
     Gtk::Button button_step;
     Gtk::Button button_clear;
+    Gtk::Box hbox_buttons;
 
-    int interval = 100;
+    // 速度関連
+    int interval = 50;
     Glib::RefPtr<Gtk::Adjustment> adjustment_interval;
     Gtk::Label label_interval;
     Gtk::Scale scale_interval;
     Gtk::Box hbox_interval;
 
+    // リスト関連
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
         ModelColumns() {

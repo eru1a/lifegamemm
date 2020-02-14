@@ -8,17 +8,20 @@ MainWindow::MainWindow()
     : board(100, 100)
     , board_area(&board)
     , vbox(Gtk::ORIENTATION_VERTICAL)
-    , hbox(Gtk::ORIENTATION_HORIZONTAL)
-    , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
+    , paned(Gtk::ORIENTATION_HORIZONTAL)
     , button_start_or_stop("start")
     , button_step("step")
     , button_clear("clear")
+    , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
     , adjustment_interval(Gtk::Adjustment::create(interval, 10, 300, 10, 100))
     , label_interval("interval (ms): ")
     , scale_interval(adjustment_interval, Gtk::ORIENTATION_HORIZONTAL)
     , hbox_interval(Gtk::ORIENTATION_HORIZONTAL) {
+
     set_title("Life Game");
     set_default_size(800, 600);
+    board_area.set_size_request(600, 600);
+    patternwindow.set_size_request(200, 600);
 
     button_start_or_stop.signal_clicked().connect([this] { toggle(); });
     button_step.signal_clicked().connect([this] {
@@ -38,14 +41,8 @@ MainWindow::MainWindow()
         interval = int(scale_interval.get_value()) / 10 * 10;
         scale_interval.set_value(interval);
     });
-    hbox_interval.pack_start(label_interval, false, false);
-    hbox_interval.pack_start(scale_interval);
 
     // パターンリスト
-    patternwindow.add(treeview);
-    patternwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    patternwindow.set_size_request(250, 600);
-
     treemodel = Gtk::ListStore::create(columns);
     treeview.set_model(treemodel);
 
@@ -76,15 +73,22 @@ MainWindow::MainWindow()
     });
     set_pattern_cell();
 
+    hbox_interval.pack_start(label_interval, false, false);
+    hbox_interval.pack_start(scale_interval);
+
     hbox_buttons.pack_start(button_start_or_stop);
     hbox_buttons.pack_start(button_step);
     hbox_buttons.pack_start(button_clear);
     hbox_buttons.pack_start(hbox_interval);
 
-    hbox.pack_start(board_area);
-    hbox.pack_start(patternwindow, false, false, 5);
+    patternwindow.add(treeview);
+    patternwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
+    paned.add1(board_area);
+    paned.add2(patternwindow);
+
     vbox.pack_start(hbox_buttons, false, false);
-    vbox.pack_start(hbox);
+    vbox.pack_start(paned);
 
     add(vbox);
 }
