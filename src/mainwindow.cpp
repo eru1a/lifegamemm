@@ -21,8 +21,7 @@ MainWindow::MainWindow()
 
     set_title("Life Game");
     set_default_size(800, 600);
-    board_area.set_size_request(600, 600);
-    patternwindow.set_size_request(200, 600);
+    board_area.set_size_request(500, 600);
 
     button_start_or_stop.signal_clicked().connect([this] { toggle(); });
     button_step.signal_clicked().connect([this] {
@@ -121,6 +120,9 @@ bool MainWindow::on_key_press_event(GdkEventKey *event) {
         // nキーでstep
         board.step();
         board_area.queue_draw();
+    } else if (!modifier && event->keyval == GDK_KEY_r) {
+        // rキーでrotate
+        board_area.rotate();
     } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_q) {
         // ctrl+qで終了
         hide();

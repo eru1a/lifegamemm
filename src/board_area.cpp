@@ -19,23 +19,35 @@ std::pair<int, int> BoardArea::get_pos(double x, double y) const {
 
 void BoardArea::put() {
     auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
-    for (size_t i = 0; i < pattern.pattern.size(); i++) {
-        for (size_t j = 0; j < pattern.pattern[i].size(); j++) {
-            if (!pattern.pattern[i][j])
-                continue;
-            int x = pos_x + j;
-            int y = pos_y + i;
-            if (!board->check_bound(x, y))
-                continue;
-            board->set(x, y, true);
-        }
-    }
+    pattern_iter([&](int i, int j, bool cell) {
+        if (!cell)
+            return;
+        int x = pos_x + j;
+        int y = pos_y + i;
+        if (!board->check_bound(x, y))
+            return;
+        board->set(x, y, true);
+    });
 }
 
 void BoardArea::remove() {
     auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     if (board->check_bound(pos_x, pos_y))
         board->set(pos_x, pos_y, false);
+}
+
+void BoardArea::rotate() {
+    // 時計回りに90度回転した新しいパターン
+    std::vector<std::vector<bool>> p(pattern.col, std::vector<bool>(pattern.row));
+    for (int i = 0; i < pattern.row; i++) {
+        for (int j = 0; j < pattern.col; j++) {
+            p[j][pattern.row - 1 - i] = pattern.pattern[i][j];
+        }
+    }
+    std::swap(pattern.col, pattern.row);
+    pattern.pattern = std::move(p);
+    r = (r + 1) % 4;
+    queue_draw();
 }
 
 bool BoardArea::on_button_press_event(GdkEventButton *event) {
@@ -105,6 +117,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     cr->rectangle(0, 0, board->get_col() * cs, board->get_row() * cs);
     cr->fill();
 
+    // 盤面の描画
     for (int y = 0; y < board->get_row(); y++) {
         for (int x = 0; x < board->get_col(); x++) {
             if (board->get(x, y)) {
@@ -118,20 +131,27 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
         }
     }
 
+    // セットされてるパターンを描画
     auto [pos_x, pos_y] = get_pos(mouse_pos.x, mouse_pos.y);
     cr->set_source_rgba(0, 0, 1, 0.7);
-    for (size_t i = 0; i < pattern.pattern.size(); i++) {
-        for (size_t j = 0; j < pattern.pattern[i].size(); j++) {
-            if (!pattern.pattern[i][j])
-                continue;
-            int x = pos_x + j;
-            int y = pos_y + i;
-            if (!board->check_bound(x, y))
-                continue;
-            cr->rectangle(x * cs, y * cs, cs, cs);
-        }
-    }
+    pattern_iter([&](int i, int j, bool cell) {
+        if (!cell)
+            return;
+        int x = pos_x + j;
+        int y = pos_y + i;
+        if (!board->check_bound(x, y))
+            return;
+        cr->rectangle(x * cs, y * cs, cs, cs);
+    });
     cr->fill();
 
     return true;
+}
+
+void BoardArea::pattern_iter(const std::function<void(int, int, bool)> &f) {
+    for (int i = 0; i < pattern.row; i++) {
+        for (int j = 0; j < pattern.col; j++) {
+            f(i, j, pattern.pattern[i][j]);
+        }
+    }
 }

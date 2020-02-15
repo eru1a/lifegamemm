@@ -2,6 +2,7 @@
 
 #include "board.h"
 #include "pattern.h"
+#include <functional>
 #include <gtkmm/drawingarea.h>
 
 class BoardArea : public Gtk::DrawingArea {
@@ -9,7 +10,10 @@ public:
     BoardArea(Board *board);
     virtual ~BoardArea() {}
 
+    /// パターンをセット
     void set_pattern(const Pattern &p) { pattern = p; }
+    /// 時計回りに90度回転させる
+    void rotate();
 
 private:
     bool on_button_press_event(GdkEventButton *event) override;
@@ -19,10 +23,15 @@ private:
 
 private:
     Board *board;
-    /// セルサイズ
+    /// セルのサイズ
     double cs = 20;
     /// 倍率
     double scale = 1.0;
+    /// 回転数(0~3)
+    int r = 0;
+
+    /// patternの各要素に対してfを実行
+    void pattern_iter(const std::function<void(int, int, bool)> &f);
 
     struct P {
         double x, y;

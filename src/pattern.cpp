@@ -67,7 +67,7 @@ Pattern Pattern::load_cells(const std::string &file) {
     }
     int row = pattern.size();
     for (int i = 0; i < row; i++)
-        pattern.resize(col);
+        pattern[i].resize(col);
 
-    return Pattern(name, pattern, comment, row, col);
+    return Pattern(name, pattern, comment, col, row);
 }
