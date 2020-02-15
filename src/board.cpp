@@ -1,4 +1,5 @@
 #include "board.h"
+#include <memory>
 
 Board::Board(int col, int row)
     : col(col)
@@ -30,7 +31,7 @@ void Board::step() {
                 next[y + 1][x + 1] = false;
         }
     }
-    board = next;
+    board = std::move(next);
 }
 
 void Board::clear() {

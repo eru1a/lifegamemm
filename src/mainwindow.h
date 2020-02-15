@@ -47,9 +47,11 @@ private:
     public:
         ModelColumns() {
             add(name);
+            add(size);
             add(pattern);
         }
         Gtk::TreeModelColumn<Glib::ustring> name;
+        Gtk::TreeModelColumn<std::pair<int, int>> size;
         Gtk::TreeModelColumn<Pattern> pattern;
     };
 
@@ -64,4 +66,7 @@ private:
     void run();
 
     void set_pattern_cell();
+    void on_cell_data_size_name(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+    int on_size_compare(const Gtk::TreeModel::iterator &iter1,
+                        const Gtk::TreeModel::iterator &iter2);
 };

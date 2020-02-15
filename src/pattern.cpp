@@ -31,7 +31,6 @@ void trim(std::string &s) {
     rtrim(s);
 }
 
-#include <iostream>
 Pattern Pattern::load_cells(const std::string &file) {
     std::ifstream ifs(file);
     assert(ifs);
@@ -44,6 +43,7 @@ Pattern Pattern::load_cells(const std::string &file) {
     std::vector<std::vector<bool>> pattern;
 
     std::string line;
+    int col = 0;
     while (std::getline(ifs, line)) {
         trim(line);
         if (starts_with(line, "!Name: ")) {
@@ -61,15 +61,13 @@ Pattern Pattern::load_cells(const std::string &file) {
                     row.push_back(true);
                 }
             }
+            col = std::max(col, int(row.size()));
             pattern.push_back(row);
         }
     }
+    int row = pattern.size();
+    for (int i = 0; i < row; i++)
+        pattern.resize(col);
 
-    // もっといい方法ある？
-    Pattern p = Pattern{};
-    p.name = name;
-    p.comment = comment;
-    p.pattern = pattern;
-
-    return p;
+    return Pattern(name, pattern, comment, row, col);
 }

@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include <glibmm/main.h>
+#include <gtkmm/treemodelsort.h>
 #include <iostream>
 
 MainWindow::MainWindow()
@@ -57,15 +58,33 @@ MainWindow::MainWindow()
         Gtk::TreeModel::Row row = *(treemodel->append());
         auto pattern = Pattern::load_cells(file);
         row[columns.name] = pattern.name;
+        row[columns.size] = {pattern.col, pattern.row};
         row[columns.pattern] = pattern;
     }
 
+    // Name
     treeview.append_column("Name", columns.name);
-    auto column = treeview.get_column(0);
-    if (column) {
-        column->set_sort_column(columns.name);
+    // Nameのソート
+    auto column_name = treeview.get_column(0);
+    if (column_name) {
+        column_name->set_sort_column(columns.name);
     }
 
+    // Size
+    Gtk::TreeViewColumn *view_column_size = Gtk::make_managed<Gtk::TreeViewColumn>("Size");
+    treeview.append_column(*view_column_size);
+    Gtk::CellRendererText *text_column = Gtk::make_managed<Gtk::CellRendererText>();
+    view_column_size->pack_start(*text_column, false);
+    view_column_size->set_cell_data_func(
+        *text_column, sigc::mem_fun(*this, &MainWindow::on_cell_data_size_name));
+    // Sizeのソート
+    auto column_size = treeview.get_column(1);
+    if (column_size) {
+        treemodel->set_sort_func(1, sigc::mem_fun(*this, &MainWindow::on_size_compare));
+        column_size->set_sort_column(columns.size);
+    }
+
+    // columnをクリックしたらパターンをセットする
     treeview.get_selection()->signal_changed().connect([this] {
         auto iter = treeview.get_selection()->get_selected();
         Gtk::TreeModel::Row row = *iter;
@@ -158,4 +177,24 @@ void MainWindow::set_pattern_cell() {
             return;
         }
     }
+}
+
+void MainWindow::on_cell_data_size_name(Gtk::CellRenderer *renderer,
+                                        const Gtk::TreeModel::iterator &iter) {
+    Gtk::TreeModel::Row row = *iter;
+    std::pair<int, int> size = row[columns.size];
+    std::string text_size = std::to_string(size.first) + " x " + std::to_string(size.second);
+    Gtk::CellRendererText *text = dynamic_cast<Gtk::CellRendererText *>(renderer);
+    if (text) {
+        text->property_markup() = text_size;
+    }
+}
+
+int MainWindow::on_size_compare(const Gtk::TreeModel::iterator &iter1,
+                                const Gtk::TreeModel::iterator &iter2) {
+    Gtk::TreeModel::Row row1 = *iter1;
+    Gtk::TreeModel::Row row2 = *iter2;
+    std::pair<int, int> size1 = row1[columns.size];
+    std::pair<int, int> size2 = row2[columns.size];
+    return size1.first * size1.second - size2.first * size2.second;
 }
