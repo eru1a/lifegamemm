@@ -7,6 +7,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/radiobutton.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/treemodel.h>
@@ -34,6 +35,11 @@ private:
     Gtk::Button button_step;
     Gtk::Button button_clear;
     Gtk::Box hbox_buttons;
+
+    // edit, select
+    Gtk::RadioButton rb_edit;
+    Gtk::RadioButton rb_select;
+    Gtk::Box hbox_edit_select;
 
     // 速度関連
     int interval = 50;

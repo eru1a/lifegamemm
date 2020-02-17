@@ -14,6 +14,9 @@ MainWindow::MainWindow()
     , button_step("step")
     , button_clear("clear")
     , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
+    , rb_edit("edit")
+    , rb_select("select")
+    , hbox_edit_select(Gtk::ORIENTATION_HORIZONTAL)
     , adjustment_interval(Gtk::Adjustment::create(interval, 10, 300, 10, 100))
     , label_interval("interval (ms): ")
     , scale_interval(adjustment_interval, Gtk::ORIENTATION_HORIZONTAL)
@@ -33,6 +36,11 @@ MainWindow::MainWindow()
         board.clear();
         board_area.queue_draw();
     });
+
+    rb_select.join_group(rb_edit);
+    rb_edit.set_active();
+    rb_edit.signal_clicked().connect([this] { board_area.edit_start(); });
+    rb_select.signal_clicked().connect([this] { board_area.select_start(); });
 
     scale_interval.set_digits(0);
     scale_interval.set_value_pos(Gtk::POS_LEFT);
@@ -83,13 +91,19 @@ MainWindow::MainWindow()
         column_size->set_sort_column(columns.size);
     }
 
-    // columnをクリックしたらパターンをセットする
+    // columnをクリックしたらパターンをセットし編集中にする
     treeview.get_selection()->signal_changed().connect([this] {
         auto iter = treeview.get_selection()->get_selected();
         Gtk::TreeModel::Row row = *iter;
         board_area.set_pattern(row[columns.pattern]);
+        board_area.edit_start();
+        board_area.queue_draw();
+        rb_edit.set_active();
     });
     set_pattern_cell();
+
+    hbox_edit_select.pack_start(rb_edit);
+    hbox_edit_select.pack_start(rb_select);
 
     hbox_interval.pack_start(label_interval, false, false);
     hbox_interval.pack_start(scale_interval);
@@ -97,6 +111,7 @@ MainWindow::MainWindow()
     hbox_buttons.pack_start(button_start_or_stop);
     hbox_buttons.pack_start(button_step);
     hbox_buttons.pack_start(button_clear);
+    hbox_buttons.pack_start(hbox_edit_select);
     hbox_buttons.pack_start(hbox_interval);
 
     patternwindow.add(treeview);
@@ -123,12 +138,26 @@ bool MainWindow::on_key_press_event(GdkEventKey *event) {
     } else if (!modifier && event->keyval == GDK_KEY_r) {
         // rキーでrotate
         board_area.rotate();
+    } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_c) {
+        // ctrl+cでコピー
+        board_area.copy();
+        board_area.queue_draw();
+        rb_edit.set_active();
+        // TODO: TreeViewのcursorをunsetしたい
+    } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_x) {
+        // ctrl+xでカット
+        board_area.cut();
+        board_area.queue_draw();
+        rb_edit.set_active();
     } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_q) {
         // ctrl+qで終了
         hide();
     } else if (!modifier && event->keyval == GDK_KEY_Escape) {
         // Escで手持ちのパターンをセルに戻す
         set_pattern_cell();
+        board_area.edit_start();
+        board_area.queue_draw();
+        rb_edit.set_active();
     }
     return true;
 }

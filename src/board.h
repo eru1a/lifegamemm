@@ -11,6 +11,8 @@ public:
     void set(int x, int y, bool cell);
     int get_col() const { return col; }
     int get_row() const { return row; }
+    /// 範囲外チェック
+    /// 範囲内ならtrue
     bool check_bound(int x, int y) { return 0 <= x && x < col && 0 <= y && y < row; }
 
     void step();
