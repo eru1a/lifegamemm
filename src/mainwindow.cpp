@@ -14,6 +14,7 @@ MainWindow::MainWindow()
     , button_step("step")
     , button_clear("clear")
     , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
+    , button_grid("grid")
     , rb_edit("edit")
     , rb_select("select")
     , hbox_edit_select(Gtk::ORIENTATION_HORIZONTAL)
@@ -34,6 +35,14 @@ MainWindow::MainWindow()
     button_clear.signal_clicked().connect([this] {
         stop();
         board.clear();
+        board_area.queue_draw();
+    });
+    button_grid.set_active();
+    button_grid.signal_clicked().connect([this] {
+        if (button_grid.get_active())
+            board_area.grid_on();
+        else
+            board_area.grid_off();
         board_area.queue_draw();
     });
 
@@ -108,10 +117,11 @@ MainWindow::MainWindow()
     hbox_interval.pack_start(label_interval, false, false);
     hbox_interval.pack_start(scale_interval);
 
-    hbox_buttons.pack_start(button_start_or_stop);
-    hbox_buttons.pack_start(button_step);
-    hbox_buttons.pack_start(button_clear);
-    hbox_buttons.pack_start(hbox_edit_select);
+    hbox_buttons.pack_start(button_start_or_stop, false, false, 3);
+    hbox_buttons.pack_start(button_step, false, false, 3);
+    hbox_buttons.pack_start(button_clear, false, false, 3);
+    hbox_buttons.pack_start(button_grid, false, false, 3);
+    hbox_buttons.pack_start(hbox_edit_select, false, false, 3);
     hbox_buttons.pack_start(hbox_interval);
 
     patternwindow.add(treeview);

@@ -53,6 +53,10 @@ public:
     /// stateがSelectDoneでなければ無効
     void cut();
 
+    void grid_on() { draw_grid = true; }
+    void grid_off() { draw_grid = false; }
+    void grid_toggle() { draw_grid = !draw_grid; }
+
 private:
     bool on_button_press_event(GdkEventButton *event) override;
     bool on_button_release_event(GdkEventButton *event) override;
@@ -77,6 +81,8 @@ private:
     int r = 0;
     /// 状態
     State state = State::Edit;
+    /// グリッドを描画するか
+    bool draw_grid = true;
 
     /// patternの各要素に対してfを実行
     void pattern_iter(const std::function<void(int, int, bool)> &f);

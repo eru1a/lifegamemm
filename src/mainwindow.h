@@ -4,6 +4,7 @@
 #include <gtkmm/adjustment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/checkbutton.h>
 #include <gtkmm/label.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/paned.h>
@@ -35,6 +36,8 @@ private:
     Gtk::Button button_step;
     Gtk::Button button_clear;
     Gtk::Box hbox_buttons;
+    // grid
+    Gtk::CheckButton button_grid;
 
     // edit, select
     Gtk::RadioButton rb_edit;

@@ -168,8 +168,6 @@ std::pair<Pos, Pos> get_selected_start_end(const Pos &p1, const Pos &p2) {
 }
 
 bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
-    cr->set_line_width(1);
-
     Cairo::Matrix matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
     // 倍率
     matrix.scale(scale, scale);
@@ -178,6 +176,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
 
     cr->transform(matrix);
 
+    cr->set_line_width(1);
     // 背景を黒にする
     cr->set_source_rgb(0, 0, 0);
     cr->rectangle(0, 0, board->get_col() * cs, board->get_row() * cs);
@@ -189,13 +188,10 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
             if (board->get(x, y)) {
                 cr->set_source_rgb(0, 1, 0);
                 cr->rectangle(x * cs, y * cs, cs, cs);
-                cr->fill();
-                cr->set_source_rgb(0.5, 0.5, 0.5);
-                cr->rectangle(x * cs, y * cs, cs, cs);
-                cr->stroke();
             }
         }
     }
+    cr->fill();
 
     switch (state) {
     case State::Edit: {
@@ -217,6 +213,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
     case State::SelectStart:
         break;
     case State::Select: {
+        // select_start_pos ~ mouse_pos
         assert(select_start_pos.has_value());
         auto pos = get_xy(mouse_pos);
         auto [start, end] = get_selected_start_end(select_start_pos.value(), pos);
@@ -225,6 +222,7 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
         break;
     }
     case State::SelectDone: {
+        // select_start_pos ~ select_end_pos
         assert(select_start_pos.has_value());
         assert(select_end_pos.has_value());
         auto [start, end] =
@@ -233,6 +231,21 @@ bool BoardArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
         draw_selected_cells(cr, start, end);
         break;
     }
+    }
+
+    // グリッド
+    if (draw_grid) {
+        cr->set_line_width(1);
+        cr->set_source_rgba(0.5, 0.5, 0.5, 0.5);
+        for (int y = 0; y < board->get_row(); y++) {
+            cr->move_to(0, y * cs);
+            cr->line_to(board->get_col() * cs, y * cs);
+        }
+        for (int x = 0; x < board->get_col(); x++) {
+            cr->move_to(x * cs, 0);
+            cr->line_to(x * cs, board->get_row() * cs);
+        }
+        cr->stroke();
     }
 
     return true;
@@ -256,13 +269,10 @@ void BoardArea::draw_selected_cells(const Cairo::RefPtr<Cairo::Context> &cr, con
             if (board->check_bound(x, y) && board->get(x, y)) {
                 cr->set_source_rgb(1, 1, 0);
                 cr->rectangle(x * cs, y * cs, cs, cs);
-                cr->fill();
-                cr->set_source_rgb(0.5, 0.5, 0.5);
-                cr->rectangle(x * cs, y * cs, cs, cs);
-                cr->stroke();
             }
         }
     }
+    cr->fill();
 }
 
 void BoardArea::copy_sub(bool cut) {
