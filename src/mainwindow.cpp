@@ -6,7 +6,7 @@
 #include <iostream>
 
 MainWindow::MainWindow()
-    : board(100, 100)
+    : board(300, 300)
     , board_area(&board)
     , vbox(Gtk::ORIENTATION_VERTICAL)
     , paned(Gtk::ORIENTATION_HORIZONTAL)

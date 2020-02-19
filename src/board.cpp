@@ -1,19 +1,33 @@
 #include "board.h"
-#include <memory>
 
 Board::Board(int col, int row)
     : col(col)
     , row(row)
-    // 番兵を含めるので2つ余分に取る(呼び出す側は番兵の存在を考慮しない)
-    , board(std::vector<std::vector<bool>>(row + 2, std::vector<bool>(col + 2, false))) {}
+    , hsize((col + bits) / bits)
+    , size(hsize * (row + 2) + 1)
+    , board(board_t(size)) {}
 
-bool Board::get(int x, int y) const { return board[y + 1][x + 1]; }
+bool Board::get(int x, int y) const {
+    // この辺少々値を変えても問題なく動いちゃうことが多くて合ってるかどうか分からない
+    // ちゃんとテストを書くべきなのだろうけれど...
+    size_t offset = (x + 1) / bits + (y + 1) * hsize;
+    uint8_t mask = (1 << (bits - 1)) >> ((x + 1) & (bits - 1));
+    return (board[offset] & mask) != 0;
+}
 
-void Board::set(int x, int y, bool cell) { board[y + 1][x + 1] = cell; }
+void Board::set_sub(board_t &b, int x, int y, bool cell) {
+    size_t offset = (x + 1) / bits + (y + 1) * hsize;
+    uint8_t mask = (1 << (bits - 1)) >> ((x + 1) & (bits - 1));
+    if (cell)
+        b[offset] |= mask;
+    else
+        b[offset] &= ~mask;
+}
+
+void Board::set(int x, int y, bool cell) { set_sub(board, x, y, cell); }
 
 void Board::step() {
-    std::vector<std::vector<bool>> next =
-        std::vector<std::vector<bool>>(row + 2, std::vector<bool>(col + 2, false));
+    board_t next(size);
     for (int y = 0; y < row; y++) {
         for (int x = 0; x < col; x++) {
             int cnt = 0;
@@ -26,14 +40,12 @@ void Board::step() {
             cnt += get(x, y - 1);
             cnt += get(x, y + 1);
             if (cnt == 3 || (cnt == 2 && get(x, y)))
-                next[y + 1][x + 1] = true;
+                set_sub(next, x, y, true);
             else
-                next[y + 1][x + 1] = false;
+                set_sub(next, x, y, false);
         }
     }
-    board = std::move(next);
+    board.swap(next);
 }
 
-void Board::clear() {
-    board = std::vector<std::vector<bool>>(row + 2, std::vector<bool>(col + 2, false));
-}
+void Board::clear() { board = board_t(size); }
