@@ -24,6 +24,6 @@ public:
         , col(col)
         , row(row) {}
 
-    /// .celssファイル読み込み
-    static Pattern load_cells(const std::string &file);
+    /// ファイル読み込み
+    static Pattern load(const std::string &file);
 };

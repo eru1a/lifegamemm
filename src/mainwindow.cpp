@@ -72,7 +72,7 @@ MainWindow::MainWindow()
 
     for (const auto &file : pattern_files) {
         Gtk::TreeModel::Row row = *(treemodel->append());
-        auto pattern = Pattern::load_cells(file);
+        auto pattern = Pattern::load(file);
         row[columns.name] = pattern.name;
         row[columns.size] = {pattern.col, pattern.row};
         row[columns.pattern] = pattern;
@@ -148,6 +148,11 @@ bool MainWindow::on_key_press_event(GdkEventKey *event) {
     } else if (!modifier && event->keyval == GDK_KEY_r) {
         // rキーでrotate
         board_area.rotate();
+    } else if (!modifier && event->keyval == GDK_KEY_c) {
+        // cキーでclear
+        stop();
+        board.clear();
+        board_area.queue_draw();
     } else if (modifier == GDK_CONTROL_MASK && event->keyval == GDK_KEY_c) {
         // ctrl+cでコピー
         board_area.copy();

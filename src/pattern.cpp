@@ -31,10 +31,18 @@ void trim(std::string &s) {
     rtrim(s);
 }
 
-Pattern Pattern::load_cells(const std::string &file) {
+// ある文字まで読み込む
+void read_while(std::istream &buf, char ch) {
+    char c;
+    while (buf >> c) {
+        if (c == ch)
+            break;
+    }
+}
+
+Pattern load_cells(const std::string &file) {
     std::ifstream ifs(file);
     assert(ifs);
-    assert(ends_with(file, ".cells"));
 
     std::filesystem::path path = file;
     // !Nnameが含まれていなければファイル名をnameとする
@@ -70,4 +78,84 @@ Pattern Pattern::load_cells(const std::string &file) {
         pattern[i].resize(col);
 
     return Pattern(name, pattern, comment, col, row);
+}
+
+Pattern load_rle(const std::string &file) {
+    std::ifstream ifs(file);
+    assert(ifs);
+
+    std::filesystem::path path = file;
+    // #Nが含まれていなければファイル名をnameとする
+    std::string name = path.stem();
+
+    int col = 0;
+    int row = 0;
+    std::vector<std::string> comment;
+
+    std::string line;
+
+    // header
+    while (std::getline(ifs, line) && starts_with(line, "#")) {
+        if (starts_with(line, "#N")) {
+            name = line.substr(2);
+            trim(name);
+        } else if (starts_with(line, "#C") || starts_with(line, "#c")) {
+            std::string comment1 = line.substr(2);
+            trim(comment1);
+            comment.push_back(comment1);
+        }
+        // 他は無視
+    }
+
+    // x, y
+    if (starts_with(line, "x")) {
+        std::stringstream ss(line);
+        read_while(ss, '=');
+        ss >> col;
+        // 次にyが来るのを前提にしてるけど問題あるかも
+        read_while(ss, '=');
+        ss >> row;
+        // ruleは無視
+    }
+
+    // board
+    int cur_col = 0;
+    int cur_row = 0;
+    std::vector<std::vector<bool>> pattern(row, std::vector<bool>(col, false));
+    while (!ifs.eof()) {
+        int cnt = 1;
+        if (isdigit(ifs.peek())) {
+            ifs >> cnt;
+        }
+        char ch = ifs.get();
+        if (ch == 'o') {
+            // 生きているセル
+            for (int i = 0; i < cnt; i++) {
+                pattern[cur_row][cur_col + i] = true;
+            }
+            cur_col += cnt;
+        } else if (ch == 'b') {
+            // 死んでいるセル
+            cur_col += cnt;
+        } else if (ch == '$') {
+            // 改行($の前に数字が来ることもあるっぽい)
+            cur_row += cnt;
+            cur_col = 0;
+        } else if (ch == '!') {
+            // 終了
+            break;
+        }
+    }
+
+    return Pattern(name, pattern, comment, col, row);
+}
+
+Pattern Pattern::load(const std::string &file) {
+    if (ends_with(file, ".cells")) {
+        return load_cells(file);
+    } else if (ends_with(file, ".rle")) {
+        return load_rle(file);
+    } else {
+        assert(false);
+    }
 }
