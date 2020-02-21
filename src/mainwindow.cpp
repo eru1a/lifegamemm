@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "resize_dialog.h"
 #include <filesystem>
 #include <fstream>
 #include <glibmm/main.h>
@@ -6,13 +7,14 @@
 #include <iostream>
 
 MainWindow::MainWindow()
-    : board(300, 300)
+    : board(100, 100)
     , board_area(&board)
     , vbox(Gtk::ORIENTATION_VERTICAL)
     , paned(Gtk::ORIENTATION_HORIZONTAL)
     , button_start_or_stop("start")
     , button_step("step")
     , button_clear("clear")
+    , button_resize("resize")
     , hbox_buttons(Gtk::ORIENTATION_HORIZONTAL)
     , button_grid("grid")
     , rb_edit("edit")
@@ -36,6 +38,26 @@ MainWindow::MainWindow()
         stop();
         board.clear();
         board_area.queue_draw();
+    });
+    button_resize.signal_clicked().connect([this] {
+        stop();
+        ResizeDialog dialog("Resize");
+        dialog.set_transient_for(*this);
+        const int result = dialog.run();
+        switch (result) {
+        case Gtk::RESPONSE_OK: {
+            auto [col, row] = dialog.get_col_row();
+            if (col != -1 && row != -1) {
+                board.resize(col, row);
+                board_area.queue_draw();
+            }
+            break;
+        }
+        case Gtk::RESPONSE_CANCEL:
+            break;
+        default:
+            break;
+        }
     });
     button_grid.set_active();
     button_grid.signal_clicked().connect([this] {
@@ -120,6 +142,7 @@ MainWindow::MainWindow()
     hbox_buttons.pack_start(button_start_or_stop, false, false, 3);
     hbox_buttons.pack_start(button_step, false, false, 3);
     hbox_buttons.pack_start(button_clear, false, false, 3);
+    hbox_buttons.pack_start(button_resize, false, false, 3);
     hbox_buttons.pack_start(button_grid, false, false, 3);
     hbox_buttons.pack_start(hbox_edit_select, false, false, 3);
     hbox_buttons.pack_start(hbox_interval);

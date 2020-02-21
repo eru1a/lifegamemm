@@ -33,6 +33,9 @@ public:
     void step();
     void clear();
 
+    /// サイズ変更
+    void resize(int new_col, int new_row);
+
 private:
     using board_t = std::vector<uint8_t>;
     // board_tに格納される型のビット数

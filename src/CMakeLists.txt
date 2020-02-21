@@ -10,6 +10,7 @@ add_executable( ${PROJECT_NAME}
   board.cpp
   board_area.cpp
   pattern.cpp
+  resize_dialog.cpp
   )
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/patterns" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

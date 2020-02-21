@@ -49,3 +49,11 @@ void Board::step() {
 }
 
 void Board::clear() { board = board_t(size); }
+
+void Board::resize(int new_col, int new_row) {
+    col = new_col;
+    row = new_row;
+    hsize = (new_col + bits) / bits;
+    size = hsize * (new_row + 2) + 1;
+    board = board_t(size);
+}

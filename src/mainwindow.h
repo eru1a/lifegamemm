@@ -35,6 +35,7 @@ private:
     Gtk::Button button_start_or_stop;
     Gtk::Button button_step;
     Gtk::Button button_clear;
+    Gtk::Button button_resize;
     Gtk::Box hbox_buttons;
     // grid
     Gtk::CheckButton button_grid;
